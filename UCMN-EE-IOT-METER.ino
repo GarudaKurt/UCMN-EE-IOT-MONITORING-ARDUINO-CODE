@@ -4,10 +4,10 @@
 #include "brokerController.h"
 
 #ifndef WIFI_SSID
-#define WIFI_SSID "iotmonitor"
+#define WIFI_SSID "KurtTyler"
 #endif
 #ifndef WIFI_PASSWORD
-#define WIFI_PASSWORD "iotmonitor123"
+#define WIFI_PASSWORD "Pandemaca0"
 #endif
 
 Sensors pzemSensors;
@@ -20,9 +20,9 @@ static constexpr unsigned long MQTT_INTERVAL_MS = 2000UL;
 
 void setup() {
   Serial.begin(115200);
+  broker.begin();
   pzemSensors.initPzemSensors();
   oledDisplay.initOled();
-  broker.begin();
 }
 
 void loop() {
