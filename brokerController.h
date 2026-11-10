@@ -36,6 +36,7 @@ private:
   const char* DEVICE_ID = "esp32-iot-meter";
   const char* SSR_CONTROL_TOPIC = "iotmeter/ssr/set";
   unsigned long lastReconnectAttempt = 0;
+  unsigned long lastStatusLog = 0;
   bool ssrState = true;
   WiFiClient espClient;
   PubSubClient client;
