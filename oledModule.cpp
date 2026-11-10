@@ -22,11 +22,12 @@ void Display::initOled() {
     Serial.println("OLED task allocation failed");
 }
 
-void Display::screenDisplay(const SensorReadings& r, bool wifi, bool mqtt) {
+void Display::screenDisplay(const SensorReadings& r, bool wifi, bool mqtt, bool ssrOn) {
   portENTER_CRITICAL(&lock);
   snapshot = r;
   wifiState = wifi;
   mqttState = mqtt;
+  ssrState = ssrOn;
   snapshotAt = millis();
   portEXIT_CRITICAL(&lock);
 }
@@ -35,17 +36,18 @@ void Display::taskEntry(void* context) {
   auto& self = *static_cast<Display*>(context);
   for (;;) {
     SensorReadings r;
-    bool wifi, mqtt;
+    bool wifi, mqtt, ssrOn;
     uint32_t updated;
     portENTER_CRITICAL(&self.lock);
     r = self.snapshot;
     wifi = self.wifiState;
     mqtt = self.mqttState;
+    ssrOn = self.ssrState;
     updated = self.snapshotAt;
     portEXIT_CRITICAL(&self.lock);
     const uint32_t now = millis();
     if (now - updated > 3500) { r.error = ErrorType::disconnected; wifi = mqtt = false; }
-    self.render(r, wifi, mqtt, now);
+    self.render(r, wifi, mqtt, ssrOn, now);
     // Yield only this task; sensor/MQTT work is never delayed by rendering.
     vTaskDelay(pdMS_TO_TICKS(50));
   }
@@ -54,47 +56,50 @@ void Display::taskEntry(void* context) {
 void Display::icon(int x, int y, int kind, bool phase) {
   switch (kind) {
     case 0: // Lightning
-      oled.drawLine(x+6,y,x+2,y+4); oled.drawHLine(x+2,y+4,5);
-      oled.drawLine(x+6,y+4,x+2,y+8); if (phase) oled.drawPixel(x,y+1); break;
+      oled.drawLine(x+5,y,x+2,y+3); oled.drawHLine(x+2,y+3,4);
+      oled.drawLine(x+5,y+3,x+2,y+6); if (phase) oled.drawPixel(x,y+1); break;
     case 1: // Plug
-      oled.drawFrame(x+1,y+2,6,5); oled.drawVLine(x+2,y,2);
-      oled.drawVLine(x+5,y,2); oled.drawVLine(x+4,y+7,2);
-      if (phase) oled.drawHLine(x+2,y+4,4); break;
+      oled.drawFrame(x+1,y+2,5,3); oled.drawVLine(x+2,y,2);
+      oled.drawVLine(x+4,y,2); oled.drawVLine(x+3,y+5,2);
+      if (phase) oled.drawPixel(x+3,y+3); break;
     case 2: // Sine wave
-      for (int i=0;i<8;++i) oled.drawPixel(x+i,y+4+((i+(phase?2:0))%8<4 ? -2:2)); break;
+      for (int i=0;i<7;++i) oled.drawPixel(x+i,y+3+((i+(phase?2:0))%8<4 ? -2:2)); break;
     case 3: // Current / battery
-      oled.drawFrame(x,y+2,8,6); oled.drawHLine(x+2,y,4);
-      oled.drawBox(x+2,y+4,phase?4:2,2); break;
+      oled.drawFrame(x,y+2,6,4); oled.drawHLine(x+2,y,2);
+      oled.drawBox(x+2,y+4,phase?3:2,1); break;
     case 4: // Energy meter
-      oled.drawFrame(x,y,8,9); oled.drawHLine(x+2,y+2,4);
-      oled.drawLine(x+4,y+6,x+(phase?6:2),y+4); break;
+      oled.drawFrame(x,y,7,7); oled.drawHLine(x+2,y+2,3);
+      oled.drawLine(x+3,y+5,x+(phase?5:2),y+4); break;
     default: // Phase / PF
-      oled.drawCircle(x+4,y+4,3); oled.drawLine(x+4,y+4,x+(phase?6:4),y+1); break;
+      oled.drawCircle(x+3,y+3,2); oled.drawLine(x+3,y+3,x+(phase?5:3),y+1); break;
   }
 }
 
-void Display::cell(int x,int y,int width,float value,const char* unit,int decimals,int kind,bool phase) {
-  icon(x+1,y+3,kind,phase);
+void Display::cell(int x,int y,int width,float value,const char* unit,int decimals,int kind,bool phase,bool ssrOn) {
+  // Keep icon and text in distinct clip regions; some glyphs draw beyond their advance.
+  if (kind != 1 && kind != 5) { // Watts and PF are text-only.
+    oled.setClipWindow(x+1,y+1,x+10,y+15);
+    icon(x+2,y+4,kind,phase);
+  }
+  oled.setClipWindow(x+13,y+1,x+width-1,y+15);
   char text[64];
-  const uint8_t* fonts[] = {u8g2_font_6x10_tf,u8g2_font_5x8_tf};
+  oled.setFont(u8g2_font_5x8_tf);
   bool fits = false;
   for (int precision=decimals; precision>=0; --precision) {
-    for (auto font : fonts) {
-      oled.setFont(font);
-      if (!isfinite(value)) snprintf(text,sizeof(text),"-- %s",unit);
-      else snprintf(text,sizeof(text),"%.*f %s",precision,value,unit);
-      if (oled.getStrWidth(text) <= width-12) { fits=true; break; }
-    }
-    if (fits) break;
+    if (!ssrOn) snprintf(text,sizeof(text),"NaN %s",unit);
+    else if (!isfinite(value)) snprintf(text,sizeof(text),"-- %s",unit);
+    else snprintf(text,sizeof(text),"%.*f %s",precision,value,unit);
+    if (oled.getStrWidth(text) <= width-16) { fits=true; break; }
   }
   if (!fits) {
     snprintf(text,sizeof(text),"%.0e %s",value,unit);
-    if (oled.getStrWidth(text)>width-12) snprintf(text,sizeof(text),"OVF %s",unit);
+    if (oled.getStrWidth(text)>width-16) snprintf(text,sizeof(text),"OVF %s",unit);
   }
-  oled.drawStr(x+width-1-oled.getStrWidth(text),y+12,text);
+  oled.drawStr(x+width-2-oled.getStrWidth(text),y+11,text);
+  oled.setMaxClipWindow();
 }
 
-void Display::render(const SensorReadings& r,bool wifi,bool mqtt,uint32_t now) {
+void Display::render(const SensorReadings& r,bool wifi,bool mqtt,bool ssrOn,uint32_t now) {
   const int w=oled.getDisplayWidth(), h=oled.getDisplayHeight();
   oled.clearBuffer();
   oled.setFont(u8g2_font_5x8_tf);
@@ -115,7 +120,7 @@ void Display::render(const SensorReadings& r,bool wifi,bool mqtt,uint32_t now) {
   const int decimals[]={1,1,1,3,3,2};
   const int rowHeight=(h-16)/3;
   for(int i=0;i<6;++i) cell((i%2)*(w/2),16+(i/2)*rowHeight,w/2,
-      r.valid()?values[i]:NAN,units[i],decimals[i],i,(now/500)%2);
+      r.valid()?values[i]:NAN,units[i],decimals[i],i,(now/500)%2,ssrOn);
   // Compare 8x8 tiles and transmit only changed contiguous runs.
   uint8_t* buffer=oled.getBufferPtr();
   for(int row=0;row<h/8;++row) {

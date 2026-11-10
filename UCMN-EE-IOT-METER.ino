@@ -15,6 +15,7 @@ Display oledDisplay;
 Controller broker(WIFI_SSID, WIFI_PASSWORD);
 unsigned long lastSensorSample = 0;
 unsigned long lastMqttPublish = 0;
+bool lastSsrOn = true;
 static constexpr unsigned long SENSOR_INTERVAL_MS = 1000UL;
 static constexpr unsigned long MQTT_INTERVAL_MS = 2000UL;
 
@@ -26,9 +27,15 @@ void setup() {
 }
 
 void loop() {
-  const unsigned long now = millis();
   broker.loop();
-  if (now - lastSensorSample >= SENSOR_INTERVAL_MS) {
+  const unsigned long now = millis();
+  const bool ssrOn = broker.ssrOn();
+  if (ssrOn != lastSsrOn) {
+    if (ssrOn) lastSensorSample = now - SENSOR_INTERVAL_MS;
+    else pzemSensors.invalidate(); // Never show or publish the last ON reading.
+    lastSsrOn = ssrOn;
+  }
+  if (ssrOn && now - lastSensorSample >= SENSOR_INTERVAL_MS) {
     lastSensorSample = now;
     pzemSensors.sendSensorsData();
   }
@@ -36,5 +43,5 @@ void loop() {
     lastMqttPublish = now;
     broker.publishEnergy(pzemSensors.readings());
   }
-  oledDisplay.screenDisplay(pzemSensors.readings(), broker.wifiConnected(), broker.connected());
+  oledDisplay.screenDisplay(pzemSensors.readings(), broker.wifiConnected(), broker.connected(), ssrOn);
 }

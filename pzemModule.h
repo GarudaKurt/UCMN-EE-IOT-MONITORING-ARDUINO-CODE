@@ -30,6 +30,7 @@ public:
   Sensors(int32_t rx = PZEM_RX_PIN, int32_t tx = PZEM_TX_PIN);
   void initPzemSensors();
   bool sendSensorsData();
+  void invalidate() { latest = SensorReadings{}; }
   const SensorReadings& readings() const { return latest; }
 
 private:
