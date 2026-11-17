@@ -2,6 +2,7 @@
 #include "pzemModule.h"
 #include "oledModule.h"
 #include "brokerController.h"
+#include "rfidModule.h"
 
 #ifndef WIFI_SSID
 #define WIFI_SSID "KurtTyler"
@@ -13,6 +14,7 @@
 Sensors pzemSensors;
 Display oledDisplay;
 Controller broker(WIFI_SSID, WIFI_PASSWORD);
+RfidReader rfid;
 unsigned long lastSensorSample = 0;
 unsigned long lastMqttPublish = 0;
 bool lastSsrOn = true;
@@ -24,15 +26,26 @@ void setup() {
   broker.begin();
   pzemSensors.initPzemSensors();
   oledDisplay.initOled();
+  rfid.begin();
 }
 
 void loop() {
   broker.loop();
+  rfid.loop(broker);
   const unsigned long now = millis();
   const bool ssrOn = broker.ssrOn();
   if (ssrOn != lastSsrOn) {
-    if (ssrOn) lastSensorSample = now - SENSOR_INTERVAL_MS;
-    else pzemSensors.invalidate(); // Never show or publish the last ON reading.
+    if (ssrOn) {
+      lastSensorSample = now - SENSOR_INTERVAL_MS;
+#if PZEM_DEBUG_LOGS
+      Serial.println("[PZEM] SSR ON: requesting a fresh sample");
+#endif
+    } else {
+      pzemSensors.invalidate(); // Never show or publish the last ON reading.
+#if PZEM_DEBUG_LOGS
+      Serial.println("[PZEM] SSR OFF: polling paused; cached readings invalidated");
+#endif
+    }
     lastSsrOn = ssrOn;
   }
   if (ssrOn && now - lastSensorSample >= SENSOR_INTERVAL_MS) {

@@ -4,6 +4,11 @@
 #include <Arduino.h>
 #include <PZEM004Tv30.h>
 
+// Set to 0 after diagnosis to silence the one-second sensor trace.
+#ifndef PZEM_DEBUG_LOGS
+#define PZEM_DEBUG_LOGS 1
+#endif
+
 #ifndef PZEM_RX_PIN
 #define PZEM_RX_PIN 16
 #endif

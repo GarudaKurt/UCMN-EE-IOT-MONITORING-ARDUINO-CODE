@@ -6,6 +6,10 @@ Sensors::Sensors(int32_t rx, int32_t tx)
 
 void Sensors::initPzemSensors() {
   serial.begin(9600, SERIAL_8N1, rxPin, txPin);
+#if PZEM_DEBUG_LOGS
+  Serial.printf("[PZEM] UART2 initialized at 9600 baud, RX=%ld TX=%ld\n",
+                static_cast<long>(rxPin), static_cast<long>(txPin));
+#endif
 }
 
 bool Sensors::sendSensorsData() {
@@ -24,5 +28,12 @@ bool Sensors::sendSensorsData() {
   else if (isnan(sample.powerFactor)) sample.error = ErrorType::powerFactor;
   else sample.error = ErrorType::none;
   latest = sample;
+#if PZEM_DEBUG_LOGS
+  Serial.printf("[PZEM SAMPLE] t=%lu ok=%d error=%u V=%.6f A=%.6f W=%.6f kWh=%.6f Hz=%.6f PF=%.6f\n",
+                static_cast<unsigned long>(millis()), latest.valid(),
+                static_cast<unsigned>(latest.error),
+                latest.voltage, latest.current, latest.power, latest.energy,
+                latest.frequency, latest.powerFactor);
+#endif
   return latest.valid();
 }

@@ -62,6 +62,21 @@ void Controller::setSsr(bool enabled) {
                 digitalRead(SSR_PIN));
 }
 
+bool Controller::toggleFromRfid() {
+  if (!client.connected()) return false;
+  const bool desired = !ssrState; // Remote MQTT commands may change state between taps.
+  StaticJsonDocument<128> request;
+  request["device_id"] = DEVICE_ID;
+  request["is_on"] = desired;
+  char payload[128];
+  const size_t length = serializeJson(request, payload, sizeof(payload));
+  if (length == 0 || length >= sizeof(payload) ||
+      !client.publish(SSR_REQUEST_TOPIC, payload, false)) return false;
+  setSsr(desired);
+  Serial.printf("[RFID] requested SSR=%s via %s\n", desired ? "ON" : "OFF", SSR_REQUEST_TOPIC);
+  return true;
+}
+
 void Controller::mqttCallback(char* topic, byte* payload, unsigned int length) {
   if (activeController != nullptr) {
     activeController->handleMqttMessage(topic, payload, length);
@@ -143,5 +158,10 @@ bool Controller::publishEnergy(const SensorReadings& readings) {
   char payload[1024];
   const size_t n = serializeJson(doc, payload, sizeof(payload));
   if (n == 0 || n >= sizeof(payload)) return false;
-  return client.publish(MQTT_TOPIC, payload);
+  const bool published = client.publish(MQTT_TOPIC, payload);
+#if PZEM_DEBUG_LOGS
+  Serial.printf("[MQTT TX] t=%lu topic=%s accepted=%d payload=%s\n",
+                static_cast<unsigned long>(millis()), MQTT_TOPIC, published, payload);
+#endif
+  return published;
 }

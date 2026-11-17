@@ -20,6 +20,7 @@ public:
   bool wifiConnected() const { return WiFi.status() == WL_CONNECTED; }
   bool publishEnergy(const SensorReadings& readings);
   bool ssrOn() const { return ssrState; }
+  bool toggleFromRfid();
 
 private:
   static void mqttCallback(char* topic, byte* payload, unsigned int length);
@@ -35,6 +36,7 @@ private:
   const char* MQTT_TOPIC = "iotmeter";
   const char* DEVICE_ID = "esp32-iot-meter";
   const char* SSR_CONTROL_TOPIC = "iotmeter/ssr/set";
+  const char* SSR_REQUEST_TOPIC = "iotmeter/ssr/request";
   unsigned long lastReconnectAttempt = 0;
   unsigned long lastStatusLog = 0;
   bool ssrState = true;

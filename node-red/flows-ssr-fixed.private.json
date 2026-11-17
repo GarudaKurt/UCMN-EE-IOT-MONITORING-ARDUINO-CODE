@@ -1,0 +1,665 @@
+﻿[
+    {
+        "id":  "f2eefc0ce7bd866c",
+        "type":  "tab",
+        "label":  "PZEM Energy",
+        "disabled":  false,
+        "info":  "",
+        "env":  [
+
+                ]
+    },
+    {
+        "id":  "6e971c21f3e40e1a",
+        "type":  "tab",
+        "label":  "Embedded_projects",
+        "disabled":  false,
+        "info":  "",
+        "env":  [
+
+                ]
+    },
+    {
+        "id":  "bbccb9c049c10965",
+        "type":  "tab",
+        "label":  "IoT Meter",
+        "disabled":  false,
+        "info":  "",
+        "env":  [
+
+                ]
+    },
+    {
+        "id":  "dae9210a59ea1fe4",
+        "type":  "mqtt-broker",
+        "name":  "",
+        "broker":  "broker.hivemq.com",
+        "port":  1883,
+        "clientid":  "",
+        "autoConnect":  true,
+        "usetls":  false,
+        "protocolVersion":  4,
+        "keepalive":  60,
+        "cleansession":  true,
+        "autoUnsubscribe":  true,
+        "birthTopic":  "",
+        "birthQos":  "0",
+        "birthRetain":  "false",
+        "birthPayload":  "",
+        "birthMsg":  {
+
+                     },
+        "closeTopic":  "",
+        "closeQos":  "0",
+        "closeRetain":  "false",
+        "closePayload":  "",
+        "closeMsg":  {
+
+                     },
+        "willTopic":  "",
+        "willQos":  "0",
+        "willRetain":  "false",
+        "willPayload":  "",
+        "willMsg":  {
+
+                    },
+        "userProps":  "",
+        "sessionExpiry":  ""
+    },
+    {
+        "id":  "1bfac753cb51fc33",
+        "type":  "websocket-client",
+        "path":  "",
+        "tls":  "",
+        "wholemsg":  "false",
+        "hb":  "0",
+        "subprotocol":  "",
+        "headers":  [
+
+                    ]
+    },
+    {
+        "id":  "19870f93469ecd63",
+        "type":  "websocket-client",
+        "path":  "wss://rkbbazmzihljqgtduidu.supabase.co/realtime/v1/websocket?apikey=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYmJhem16aWhsanFndGR1aWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3NTQ5MTMsImV4cCI6MjEwOTMzMDkxM30.UtUj-kmHebnoUh_kypCp5I6y471xEi9ZA1MfbNL0ikU\u0026vsn=1.0.0",
+        "tls":  "",
+        "wholemsg":  "false",
+        "hb":  "0",
+        "subprotocol":  "",
+        "headers":  [
+
+                    ]
+    },
+    {
+        "id":  "f1022933b0d1ad0e",
+        "type":  "global-config",
+        "env":  [
+                    {
+                        "name":  "SUPABASE_REALTIME_TOKEN",
+                        "value":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYmJhem16aWhsanFndGR1aWR1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5Mzc1NDkxMywiZXhwIjoyMTA5MzMwOTEzfQ.cVAssamu8QW-A5FpQdOXweOVazHjBhWeJmllHV9D6DQ",
+                        "type":  "str"
+                    }
+                ],
+        "modules":  {
+
+                    }
+    },
+    {
+        "id":  "e4cd47f4fa259e26",
+        "type":  "mqtt in",
+        "z":  "f2eefc0ce7bd866c",
+        "name":  "PZEM Broker",
+        "topic":  "iotmonitoring/energy",
+        "qos":  "0",
+        "datatype":  "json",
+        "broker":  "dae9210a59ea1fe4",
+        "nl":  false,
+        "rap":  true,
+        "rh":  0,
+        "inputs":  0,
+        "x":  1960,
+        "y":  1780,
+        "wires":  [
+                      [
+                          "6332962a4ba7cb1f",
+                          "a010f64e5c8f9c12"
+                      ]
+                  ]
+    },
+    {
+        "id":  "6332962a4ba7cb1f",
+        "type":  "debug",
+        "z":  "f2eefc0ce7bd866c",
+        "name":  "PZEM raw",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  true,
+        "tostatus":  false,
+        "complete":  "payload",
+        "targetType":  "msg",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  2150,
+        "y":  1780,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "a010f64e5c8f9c12",
+        "type":  "function",
+        "z":  "f2eefc0ce7bd866c",
+        "name":  "PZEM Payload",
+        "func":  "const p = msg.payload || {};\nconst timestamp = new Date().toISOString();\n\nfunction reading(sensor, data) {\n    data = data || {};\n\n    return {\n        sensor: sensor,\n        voltage_v: Number(data.voltage) || 0,\n        current_a: Number(data.current) || 0,\n        power_w: Number(data.power) || 0,\n        energy_kwh: Number(data.energy) || 0,\n        timestamp: timestamp\n    };\n}\n\nmsg.headers = {\n    ...(msg.headers || {}),\n    \"Content-Type\": \"application/json\"\n};\n\nmsg.payload = {\n    p_device_id: p.device_id || \"esp32-monitoring\",\n    p_readings: [\n        reading(\"Sala\", p.sala),\n        reading(\"Living Room\", p.livingroom),\n        reading(\"Master Bedroom\", p.master)\n    ]\n};\n\nreturn msg;",
+        "outputs":  1,
+        "timeout":  0,
+        "noerr":  0,
+        "initialize":  "",
+        "finalize":  "",
+        "libs":  [
+
+                 ],
+        "x":  2140,
+        "y":  1840,
+        "wires":  [
+                      [
+                          "f7bcdec582bb2baf"
+                      ]
+                  ]
+    },
+    {
+        "id":  "f7bcdec582bb2baf",
+        "type":  "http request",
+        "z":  "f2eefc0ce7bd866c",
+        "name":  "API",
+        "method":  "POST",
+        "ret":  "obj",
+        "paytoqs":  "ignore",
+        "url":  "https://cmdpjnhwhacabarayyky.supabase.co/rest/v1/rpc/ingest_energy_readings",
+        "tls":  "",
+        "persist":  false,
+        "proxy":  "",
+        "insecureHTTPParser":  false,
+        "authType":  "",
+        "senderr":  false,
+        "headers":  [
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "apikey",
+                            "valueType":  "other",
+                            "valueValue":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZHBqbmh3aGFjYWJhcmF5eWt5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDE2MTE3MiwiZXhwIjoyMDk5NzM3MTcyfQ.VNiW-26nmmKckzwNPXXzSpBUnpgk9yeWFtRpzgjf7Kk"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Authorization",
+                            "valueType":  "other",
+                            "valueValue":  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtZHBqbmh3aGFjYWJhcmF5eWt5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4NDE2MTE3MiwiZXhwIjoyMDk5NzM3MTcyfQ.VNiW-26nmmKckzwNPXXzSpBUnpgk9yeWFtRpzgjf7Kk"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Content-Type",
+                            "valueType":  "other",
+                            "valueValue":  "application/json"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Prefer",
+                            "valueType":  "other",
+                            "valueValue":  "return=minimal"
+                        }
+                    ],
+        "x":  2310,
+        "y":  1840,
+        "wires":  [
+                      [
+                          "ab23054e39c8f6df"
+                      ]
+                  ]
+    },
+    {
+        "id":  "ab23054e39c8f6df",
+        "type":  "debug",
+        "z":  "f2eefc0ce7bd866c",
+        "name":  "PZEM processed",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  true,
+        "tostatus":  false,
+        "complete":  "true",
+        "targetType":  "full",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  2470,
+        "y":  1840,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "ef8d63472cd66680",
+        "type":  "mqtt in",
+        "z":  "6e971c21f3e40e1a",
+        "name":  "Broker",
+        "topic":  "embedded/attendance",
+        "qos":  "0",
+        "datatype":  "auto-detect",
+        "broker":  "dae9210a59ea1fe4",
+        "nl":  false,
+        "rap":  true,
+        "rh":  0,
+        "inputs":  0,
+        "x":  350,
+        "y":  240,
+        "wires":  [
+                      [
+                          "7ebd6aa1cb0cf4a3"
+                      ]
+                  ]
+    },
+    {
+        "id":  "7ebd6aa1cb0cf4a3",
+        "type":  "function",
+        "z":  "6e971c21f3e40e1a",
+        "name":  "Payload",
+        "func":  "msg.payload = { records: { device_id: msg.payload.device_id, empId: msg.payload.employeeId, timeIn: msg.payload.timeIn, timeOut: msg.payload.timeOut, timestamp: msg.payload.timestamp } }; return msg;",
+        "outputs":  1,
+        "timeout":  0,
+        "noerr":  0,
+        "initialize":  "",
+        "finalize":  "",
+        "libs":  [
+
+                 ],
+        "x":  620,
+        "y":  240,
+        "wires":  [
+                      [
+                          "5d151488cd0970d6"
+                      ]
+                  ]
+    },
+    {
+        "id":  "5d151488cd0970d6",
+        "type":  "debug",
+        "z":  "6e971c21f3e40e1a",
+        "name":  "debug_logs",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  false,
+        "tostatus":  false,
+        "complete":  "payload",
+        "targetType":  "msg",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  810,
+        "y":  240,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "bc3ca7acd891040f",
+        "type":  "mqtt in",
+        "z":  "bbccb9c049c10965",
+        "name":  "PZEM Broker",
+        "topic":  "iotmeter",
+        "qos":  "0",
+        "datatype":  "json",
+        "broker":  "dae9210a59ea1fe4",
+        "nl":  false,
+        "rap":  true,
+        "rh":  0,
+        "inputs":  0,
+        "x":  330,
+        "y":  360,
+        "wires":  [
+                      [
+                          "7294b1b8717659df",
+                          "169ada7adef59fcf"
+                      ]
+                  ]
+    },
+    {
+        "id":  "7294b1b8717659df",
+        "type":  "debug",
+        "z":  "bbccb9c049c10965",
+        "name":  "PZEM raw",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  true,
+        "tostatus":  false,
+        "complete":  "payload",
+        "targetType":  "msg",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  520,
+        "y":  360,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "169ada7adef59fcf",
+        "type":  "function",
+        "z":  "bbccb9c049c10965",
+        "name":  "PZEM Payload",
+        "func":  "const p = msg.payload || {};\nconst timestamp = new Date().toISOString();\n\nfunction num(value) {\n    if (value === undefined || value === null || value === \"\") return null;\n\n    const n = Number(value);\n    return Number.isFinite(n) ? n : null;\n}\n\nconst sensor = p.sensor;\nconst master = p.master;\n\nconst data =\n    sensor \u0026\u0026 sensor.ok !== false\n        ? sensor\n        : master \u0026\u0026 master.ok !== false\n            ? master\n            : null;\n\nif (!data) {\n    node.warn(\"No valid PZEM reading found\");\n    return null;\n}\n\nconst voltage = num(data.voltage);\nconst current = num(data.current);\nconst power = num(data.power);\nconst energy = num(data.energy);\n\nif (\n    voltage === null \u0026\u0026\n    current === null \u0026\u0026\n    power === null \u0026\u0026\n    energy === null\n) {\n    node.warn(\"PZEM reading contains no numeric values\");\n    return null;\n}\n\nmsg.headers = {\n    ...(msg.headers || {}),\n    \"Content-Type\": \"application/json\"\n};\n\nmsg.payload = {\n    p_device_id: p.device_id || \"esp32-monitoring\",\n    p_readings: [\n        {\n            sensor: \"Rental House\",\n            voltage_v: voltage,\n            current_a: current,\n            power_w: power,\n            energy_kwh: energy,\n            timestamp\n        }\n    ]\n};\n\nreturn msg;",
+        "outputs":  1,
+        "timeout":  0,
+        "noerr":  0,
+        "initialize":  "",
+        "finalize":  "",
+        "libs":  [
+
+                 ],
+        "x":  510,
+        "y":  420,
+        "wires":  [
+                      [
+                          "504429f95d78e02e"
+                      ]
+                  ]
+    },
+    {
+        "id":  "504429f95d78e02e",
+        "type":  "http request",
+        "z":  "bbccb9c049c10965",
+        "name":  "API",
+        "method":  "POST",
+        "ret":  "obj",
+        "paytoqs":  "ignore",
+        "url":  "https://rkbbazmzihljqgtduidu.supabase.co/rest/v1/rpc/ingest_energy_readings_with_live_fields",
+        "tls":  "",
+        "persist":  false,
+        "proxy":  "",
+        "insecureHTTPParser":  false,
+        "authType":  "",
+        "senderr":  false,
+        "headers":  [
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "apikey",
+                            "valueType":  "other",
+                            "valueValue":  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYmJhem16aWhsanFndGR1aWR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM3NTQ5MTMsImV4cCI6MjEwOTMzMDkxM30.UtUj-kmHebnoUh_kypCp5I6y471xEi9ZA1MfbNL0ikU"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Authorization",
+                            "valueType":  "other",
+                            "valueValue":  "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYmJhem16aWhsanFndGR1aWR1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5Mzc1NDkxMywiZXhwIjoyMTA5MzMwOTEzfQ.cVAssamu8QW-A5FpQdOXweOVazHjBhWeJmllHV9D6DQ"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Content-Type",
+                            "valueType":  "other",
+                            "valueValue":  "application/json"
+                        },
+                        {
+                            "keyType":  "other",
+                            "keyValue":  "Prefer",
+                            "valueType":  "other",
+                            "valueValue":  "return=minimal"
+                        }
+                    ],
+        "x":  680,
+        "y":  420,
+        "wires":  [
+                      [
+                          "5f6c17712456d677"
+                      ]
+                  ]
+    },
+    {
+        "id":  "5f6c17712456d677",
+        "type":  "debug",
+        "z":  "bbccb9c049c10965",
+        "name":  "PZEM processed",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  true,
+        "tostatus":  false,
+        "complete":  "true",
+        "targetType":  "full",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  840,
+        "y":  420,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "5849689c7276f758",
+        "type":  "mqtt out",
+        "z":  "bbccb9c049c10965",
+        "name":  "MQTT OUT SSR",
+        "topic":  "iotmeter/ssr/set",
+        "qos":  "1",
+        "retain":  "true",
+        "respTopic":  "",
+        "contentType":  "",
+        "userProps":  "",
+        "correl":  "",
+        "expiry":  "",
+        "broker":  "dae9210a59ea1fe4",
+        "x":  930,
+        "y":  200,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "40ecdb176751b304",
+        "type":  "websocket in",
+        "z":  "bbccb9c049c10965",
+        "name":  "Supabase Realtime In",
+        "server":  "",
+        "client":  "19870f93469ecd63",
+        "x":  360,
+        "y":  200,
+        "wires":  [
+                      [
+                          "80e35ccc32bdb119"
+                      ]
+                  ]
+    },
+    {
+        "id":  "80e35ccc32bdb119",
+        "type":  "json",
+        "z":  "bbccb9c049c10965",
+        "name":  "",
+        "property":  "payload",
+        "action":  "obj",
+        "pretty":  false,
+        "x":  550,
+        "y":  200,
+        "wires":  [
+                      [
+                          "1f5530b60b4a4c5f"
+                      ]
+                  ]
+    },
+    {
+        "id":  "1f5530b60b4a4c5f",
+        "type":  "function",
+        "z":  "bbccb9c049c10965",
+        "name":  "payload",
+        "func":  "let e = msg.payload;\ntry { if (typeof e === \u0027string\u0027) e = JSON.parse(e); }\ncatch (_) { node.warn(\u0027SSR Realtime invalid JSON\u0027); return null; }\nif (!e) return null;\nif (e.event === \u0027phx_reply\u0027) {\n    if (e.topic !== \u0027phoenix\u0027) node.warn(\u0027SSR join reply: \u0027 + JSON.stringify(e.payload));\n    return null;\n}\nif ([\u0027system\u0027,\u0027phx_error\u0027,\u0027phx_close\u0027].includes(e.event)) {\n    node.warn(\u0027SSR Realtime \u0027 + e.event + \u0027: \u0027 + JSON.stringify(e.payload));\n    return null;\n}\nif (e.event !== \u0027postgres_changes\u0027) return null;\nconst d = e.payload?.data || e.data || e.payload;\nif (!d || d.type === \u0027DELETE\u0027) return null;\nif (d.table \u0026\u0026 d.table !== \u0027pzem_status\u0027) return null;\nconst r = d.record || d.new;\nif (!r || r.group_id !== \u0027rental-house\u0027) return null;\nif (typeof r.is_on !== \u0027boolean\u0027) { node.warn(\u0027SSR invalid is_on\u0027); return null; }\nnode.warn(\u0027SSR database change -\u003e MQTT \u0027 + r.is_on);\nreturn {topic:\u0027iotmeter/ssr/set\u0027, payload:r.is_on ? \u0027true\u0027:\u0027false\u0027, qos:1, retain:true};",
+        "outputs":  1,
+        "timeout":  0,
+        "noerr":  0,
+        "initialize":  "",
+        "finalize":  "",
+        "libs":  [
+
+                 ],
+        "x":  700,
+        "y":  200,
+        "wires":  [
+                      [
+                          "5849689c7276f758",
+                          "a40c70eea65680c7"
+                      ]
+                  ]
+    },
+    {
+        "id":  "f1f00899c543082f",
+        "type":  "websocket out",
+        "z":  "bbccb9c049c10965",
+        "name":  "Supabase Realtime Out",
+        "server":  "",
+        "client":  "19870f93469ecd63",
+        "x":  1110,
+        "y":  280,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "3b39e9d05697bdb3",
+        "type":  "function",
+        "z":  "bbccb9c049c10965",
+        "name":  "payload",
+        "func":  "const token = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJrYmJhem16aWhsanFndGR1aWR1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc5Mzc1NDkxMywiZXhwIjoyMTA5MzMwOTEzfQ.cVAssamu8QW-A5FpQdOXweOVazHjBhWeJmllHV9D6DQ\"\n\nif (!token) { node.error(\u0027SUPABASE_REALTIME_TOKEN missing\u0027); return null; }\nconst ref = String(Date.now());\nmsg.payload = {\n    topic: \u0027realtime:public:pzem_status\u0027, event: \u0027phx_join\u0027, ref, join_ref: ref,\n    payload: {\n        config: { broadcast: {self:false}, presence:{key:\u0027\u0027},\n            postgres_changes:[{event:\u0027*\u0027,schema:\u0027public\u0027,table:\u0027pzem_status\u0027,filter:\u0027group_id=eq.rental-house\u0027}] },\n        access_token: token\n    }\n};\nnode.warn(\u0027SSR Realtime join sent ref=\u0027 + ref);\nreturn msg;",
+        "outputs":  1,
+        "timeout":  0,
+        "noerr":  0,
+        "initialize":  "",
+        "finalize":  "",
+        "libs":  [
+
+                 ],
+        "x":  620,
+        "y":  280,
+        "wires":  [
+                      [
+                          "a013cc23ea7db12d"
+                      ]
+                  ]
+    },
+    {
+        "id":  "a013cc23ea7db12d",
+        "type":  "json",
+        "z":  "bbccb9c049c10965",
+        "name":  "Supabase Join",
+        "property":  "payload",
+        "action":  "str",
+        "pretty":  false,
+        "x":  840,
+        "y":  280,
+        "wires":  [
+                      [
+                          "f1f00899c543082f"
+                      ]
+                  ]
+    },
+    {
+        "id":  "95bb88cbb79aebf3",
+        "type":  "inject",
+        "z":  "bbccb9c049c10965",
+        "name":  "Timestamp",
+        "props":  [
+                      {
+                          "p":  "payload"
+                      }
+                  ],
+        "repeat":  "",
+        "crontab":  "",
+        "once":  true,
+        "onceDelay":  "2.0",
+        "topic":  "",
+        "payload":  "",
+        "payloadType":  "date",
+        "x":  330,
+        "y":  280,
+        "wires":  [
+                      [
+                          "3b39e9d05697bdb3"
+                      ]
+                  ]
+    },
+    {
+        "id":  "a40c70eea65680c7",
+        "type":  "debug",
+        "z":  "bbccb9c049c10965",
+        "name":  "debug 1",
+        "active":  true,
+        "tosidebar":  true,
+        "console":  false,
+        "tostatus":  false,
+        "complete":  "false",
+        "statusVal":  "",
+        "statusType":  "auto",
+        "x":  840,
+        "y":  120,
+        "wires":  [
+
+                  ]
+    },
+    {
+        "id":  "ssr-heartbeat-timer",
+        "type":  "inject",
+        "name":  "SSR heartbeat every 20s",
+        "repeat":  "20",
+        "once":  false,
+        "props":  [
+                      {
+                          "p":  "payload"
+                      }
+                  ],
+        "wires":  [
+                      [
+                          "ssr-heartbeat"
+                      ]
+                  ],
+        "x":  180,
+        "y":  640,
+        "z":  "bbccb9c049c10965"
+    },
+    {
+        "id":  "ssr-heartbeat",
+        "type":  "function",
+        "name":  "SSR Phoenix heartbeat",
+        "func":  "return {payload:JSON.stringify({topic:\u0027phoenix\u0027,event:\u0027heartbeat\u0027,payload:{},ref:String(Date.now())})};",
+        "outputs":  1,
+        "wires":  [
+                      [
+                          "f1f00899c543082f"
+                      ]
+                  ],
+        "x":  450,
+        "y":  640,
+        "z":  "bbccb9c049c10965"
+    },
+    {
+        "id":  "ssr-ws-status",
+        "type":  "status",
+        "name":  "SSR WebSocket status",
+        "scope":  [
+                      "40ecdb176751b304"
+                  ],
+        "wires":  [
+                      [
+                          "ssr-rejoin"
+                      ]
+                  ],
+        "x":  180,
+        "y":  700,
+        "z":  "bbccb9c049c10965"
+    },
+    {
+        "id":  "ssr-rejoin",
+        "type":  "function",
+        "name":  "Join on connection",
+        "func":  "node.warn(\u0027SSR WebSocket: \u0027 + msg.status.text); return msg.status.text === \u0027connected\u0027 ? {} : null;",
+        "outputs":  1,
+        "wires":  [
+                      [
+                          "3b39e9d05697bdb3"
+                      ]
+                  ],
+        "x":  450,
+        "y":  700,
+        "z":  "bbccb9c049c10965"
+    }
+]
