@@ -24,6 +24,10 @@ in `rfidCards.h` if needed, then upload again. Unknown cards are
 rejected. A repeated read within 1.5 seconds is ignored. Card UIDs can be
 cloned and are not strong authentication for a security-sensitive load.
 
+After an approved tap successfully changes the SSR, the OLED shows `POWER ON`
+or `POWER OFF` for three seconds, then returns to the six PZEM readings.
+Denied taps and failed MQTT requests leave the readings on screen.
+
 Import `node-red/rfid-ssr-sync.json` into the existing **SSR Poll** tab and
 deploy. It refers to the existing broker config node `a7` and requires the
 existing Node-RED environment variable `SUPABASE_KEY` with permission to

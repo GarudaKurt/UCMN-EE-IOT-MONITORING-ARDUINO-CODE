@@ -8,17 +8,20 @@ Layout: header occupies y=0..10, separator y=13, and six 64x16 cells
 occupy y=16..63. Order is voltage/power, frequency/current, energy/PF.
 The two outlined header indicators represent Wi-Fi (left) and MQTT (right).
 Filled means connected in the latest snapshot. A snapshot older than 3.5 s
-is marked unavailable. Icons animate every 500 ms; the header moves one
-pixel every 60 ms. Each reading uses an icon no larger than 7x7 and a 5x8 font
-within its 64x16 cell. Watts and PF are text-only. The remaining icons and
-values use separate clip regions with a visible gap. Numeric text is width-tested
+is marked unavailable. The display uses no animated icons. The text-only
+header moves one pixel every 80 ms. Each reading uses a 5x8 font within
+its 64x16 cell. Numeric text is width-tested
 and rounded for display only; extreme values fall back to scientific notation
 or OVF.
 
 Only the OLED task owns U8g2 after initialization. The main loop copies a
 snapshot under a short critical section; no I2C or rendering happens under
 that lock. Changed 8x8 tile runs are transferred instead of whole frames.
-The task yields between frames and keeps animating during network stalls.
+The task yields between frames and keeps the header scrolling during network stalls.
+
+An approved RFID tap that successfully changes the SSR displays `POWER ON`
+or `POWER OFF` for three seconds. The sensor view then returns. The status
+screen has no moving elements, and sampling and MQTT continue while it is shown.
 
 MQTT numeric tokens have six fractional digits. This does not increase PZEM
 accuracy, and binary float representation can appear in the final digits.

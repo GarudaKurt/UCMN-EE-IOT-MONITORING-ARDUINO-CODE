@@ -37,7 +37,7 @@ void setup() {
 
 void loop() {
   broker.loop();
-  rfid.loop(broker);
+  const bool rfidSwitched = rfid.loop(broker);
   const unsigned long now = millis();
   const bool ssrOn = broker.ssrOn();
   if (ssrOn != lastSsrOn) {
@@ -63,5 +63,6 @@ void loop() {
     broker.publishEnergy(pzemSensors.readings());
   }
   oledDisplay.screenDisplay(pzemSensors.readings(), broker.wifiConnected(), broker.connected(), ssrOn);
+  if (rfidSwitched) oledDisplay.showPowerStatus(ssrOn);
 }
 

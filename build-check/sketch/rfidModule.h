@@ -16,7 +16,8 @@ class RfidReader {
 public:
   RfidReader() : reader(RFID_SS_PIN, RFID_RST_PIN) {}
   void begin();
-  void loop(Controller& broker);
+  // True only when an approved tap successfully changes the SSR state.
+  bool loop(Controller& broker);
 
 private:
   bool approved(const char* uid) const;

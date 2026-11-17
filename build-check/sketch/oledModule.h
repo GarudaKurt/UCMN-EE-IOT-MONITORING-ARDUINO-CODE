@@ -23,15 +23,18 @@ public:
   Display();
   void initOled();
   void screenDisplay(const SensorReadings& readings, bool wifiConnected, bool mqttConnected, bool ssrOn);
+  void showPowerStatus(bool ssrOn);
 private:
   U8G2_SSD1309_128X64_NONAME2_F_HW_I2C oled;
   static void taskEntry(void* self);
-  void render(const SensorReadings& readings, bool wifi, bool mqtt, bool ssrOn, uint32_t now);
-  void icon(int x, int y, int kind, bool phase);
-  void cell(int x, int y, int width, float value, const char* unit, int decimals, int kind, bool phase, bool ssrOn);
+  void render(const SensorReadings& readings, bool wifi, bool mqtt, bool ssrOn,
+              bool showStatus, uint32_t now);
+  void cell(int x, int y, int width, float value, const char* unit, int decimals, bool ssrOn);
   portMUX_TYPE lock = portMUX_INITIALIZER_UNLOCKED;
   SensorReadings snapshot;
   bool wifiState = false, mqttState = false, ssrState = true;
+  bool powerStatusActive = false, powerStatusOn = false;
+  uint32_t powerStatusAt = 0;
   uint32_t snapshotAt = 0;
   uint8_t previous[1024] = {};
   TaskHandle_t task = nullptr;

@@ -65,14 +65,15 @@ void Controller::setSsr(bool enabled) {
 
 bool Controller::toggleFromRfid() {
   if (!client.connected()) return false;
-  const bool desired = !ssrState; // Remote MQTT commands may change state between taps.
+  const bool desired = !ssrState;  // Remote MQTT commands may change state between taps.
   StaticJsonDocument<128> request;
   request["device_id"] = DEVICE_ID;
-  request["is_on"] = desired;
+  request["is_on"] = desired;      // boolean; Node-RED writes it to rfid_is_on in Supabase
+  request["source"] = "rfid";
   char payload[128];
   const size_t length = serializeJson(request, payload, sizeof(payload));
   if (length == 0 || length >= sizeof(payload) ||
-      !client.publish(SSR_REQUEST_TOPIC, payload, false)) return false;
+      !client.publish(SSR_REQUEST_TOPIC, payload, false)) return false;  // never retained
   setSsr(desired);
   Serial.printf("[RFID] requested SSR=%s via %s\n", desired ? "ON" : "OFF", SSR_REQUEST_TOPIC);
   return true;
